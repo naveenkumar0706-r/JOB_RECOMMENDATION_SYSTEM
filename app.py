@@ -1,5 +1,11 @@
 import streamlit as st
+import numpy as np
+import pickle
 
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Page Config
 st.set_page_config(
     page_title="Job Recommendation System",
     page_icon="💼",
@@ -18,31 +24,38 @@ page_bg = """
 }
 
 .main-box {
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0,0,0,0.65);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
+    margin-bottom: 20px;
 }
 
-h1, h2, h3, p, label {
-    color: white !important;
-}
-
-textarea {
-    background-color: white !important;
-    color: black !important;
-}
-
-.stButton > button {
-    width: 100%;
-    background-color: #00b4d8;
-    color: white;
-    border-radius: 10px;
+h1,p,label{
+    color:white !important;
 }
 </style>
 """
 
 st.markdown(page_bg, unsafe_allow_html=True)
+
+# Load Model
+@st.cache_resource
+def load_files():
+
+    model = load_model("job_model.h5")
+
+    with open("tokenizer.pkl", "rb") as f:
+        tokenizer = pickle.load(f)
+
+    with open("label_encoder.pkl", "rb") as f:
+        label_encoder = pickle.load(f)
+
+    return model, tokenizer, label_encoder
+
+model, tokenizer, label_encoder = load_files()
+
+MAX_LEN = 200
 
 st.markdown("""
 <div class="main-box">
@@ -53,43 +66,35 @@ st.markdown("""
 
 skills = st.text_area(
     "Enter Skills / Resume Summary",
-    height=180
+    height=200
 )
 
 if st.button("Recommend Job"):
 
     if skills.strip() == "":
-        st.warning("Please enter your skills.")
-
+        st.warning("Please enter skills.")
     else:
 
-        text = skills.lower()
+        seq = tokenizer.texts_to_sequences([skills])
 
-        if any(word in text for word in
-               ["python", "machine learning", "deep learning", "tensorflow", "pandas"]):
-            job = "Data Scientist"
+        padded = pad_sequences(
+            seq,
+            maxlen=MAX_LEN,
+            padding="post"
+        )
 
-        elif any(word in text for word in
-                 ["sql", "power bi", "tableau", "excel"]):
-            job = "Data Analyst"
+        prediction = model.predict(
+            padded,
+            verbose=0
+        )
 
-        elif any(word in text for word in
-                 ["java", "spring", "hibernate"]):
-            job = "Java Developer"
+        predicted_class = np.argmax(prediction)
 
-        elif any(word in text for word in
-                 ["html", "css", "javascript", "react"]):
-            job = "Web Developer"
+        job = label_encoder.inverse_transform(
+            [predicted_class]
+        )[0]
 
-        elif any(word in text for word in
-                 ["aws", "docker", "kubernetes", "devops"]):
-            job = "DevOps Engineer"
-
-        elif any(word in text for word in
-                 ["c++", "c", "data structures", "algorithms"]):
-            job = "Software Engineer"
-
-        else:
-            job = "Software Developer"
+        confidence = np.max(prediction) * 100
 
         st.success(f"🎯 Recommended Job: {job}")
+        st.info(f"Match Confidence: {confidence:.2f}%")
