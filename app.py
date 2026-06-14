@@ -1,20 +1,16 @@
 import streamlit as st
-import numpy as np
-import pickle
 
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
-# Page Config
+# Page Configuration
 st.set_page_config(
     page_title="Job Recommendation System",
     page_icon="💼",
-    layout="centered"
+    layout="wide"
 )
 
 # Background Image
 page_bg = """
 <style>
+
 .stApp {
     background-image: url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3");
     background-size: cover;
@@ -23,78 +19,89 @@ page_bg = """
     background-attachment: fixed;
 }
 
+/* Center Container */
 .main-box {
-    background: rgba(0,0,0,0.65);
-    padding: 30px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 40px;
     border-radius: 15px;
+    width: 60%;
+    margin: auto;
+    margin-top: 80px;
     text-align: center;
-    margin-bottom: 20px;
 }
 
-h1,p,label{
-    color:white !important;
+/* Text Color */
+h1, h2, h3, p, label {
+    color: white !important;
 }
+
+/* Text Area */
+textarea {
+    background-color: rgba(255,255,255,0.9) !important;
+    color: black !important;
+    font-size: 16px !important;
+}
+
+/* Button */
+.stButton > button {
+    width: 100%;
+    background-color: #00b4d8;
+    color: white;
+    font-size: 18px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
 </style>
 """
 
 st.markdown(page_bg, unsafe_allow_html=True)
 
-# Load Model
-@st.cache_resource
-def load_files():
-
-    model = load_model("job_model.h5")
-
-    with open("tokenizer.pkl", "rb") as f:
-        tokenizer = pickle.load(f)
-
-    with open("label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
-
-    return model, tokenizer, label_encoder
-
-model, tokenizer, label_encoder = load_files()
-
-MAX_LEN = 200
-
-st.markdown("""
-<div class="main-box">
-<h1>💼 Job Recommendation System</h1>
-<p>Enter your skills or resume summary to get a recommended job role.</p>
-</div>
-""", unsafe_allow_html=True)
-
-skills = st.text_area(
-    "Enter Skills / Resume Summary",
-    height=200
+# Centered Heading
+st.markdown(
+    """
+    <div class="main-box">
+        <h1>💼 Job Recommendation System</h1>
+        <p>Enter your skills or resume summary to get a recommended job role.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-if st.button("Recommend Job"):
+# Center Column Layout
+col1, col2, col3 = st.columns([1, 2, 1])
 
-    if skills.strip() == "":
-        st.warning("Please enter skills.")
-    else:
+with col2:
 
-        seq = tokenizer.texts_to_sequences([skills])
+    skills = st.text_area(
+        "Enter Skills / Resume Summary",
+        height=180
+    )
 
-        padded = pad_sequences(
-            seq,
-            maxlen=MAX_LEN,
-            padding="post"
-        )
+    if st.button("Recommend Job"):
 
-        prediction = model.predict(
-            padded,
-            verbose=0
-        )
+        if skills.strip() == "":
+            st.warning("Please enter your skills.")
+        else:
 
-        predicted_class = np.argmax(prediction)
+            skills = skills.lower()
 
-        job = label_encoder.inverse_transform(
-            [predicted_class]
-        )[0]
+            if "python" in skills or "machine learning" in skills:
+                job = "Data Scientist"
 
-        confidence = np.max(prediction) * 100
+            elif "java" in skills:
+                job = "Java Developer"
 
-        st.success(f"🎯 Recommended Job: {job}")
-        st.info(f"Match Confidence: {confidence:.2f}%")
+            elif "sql" in skills or "power bi" in skills:
+                job = "Data Analyst"
+
+            elif "html" in skills or "css" in skills:
+                job = "Web Developer"
+
+            elif "aws" in skills or "cloud" in skills:
+                job = "Cloud Engineer"
+
+            else:
+                job = "Software Engineer"
+
+            st.success(f"🎯 Recommended Job: {job}")
