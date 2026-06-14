@@ -1,16 +1,14 @@
 import streamlit as st
 
-# Page Configuration
 st.set_page_config(
     page_title="Job Recommendation System",
     page_icon="💼",
-    layout="wide"
+    layout="centered"
 )
 
 # Background Image
 page_bg = """
 <style>
-
 .stApp {
     background-image: url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3");
     background-size: cover;
@@ -19,89 +17,79 @@ page_bg = """
     background-attachment: fixed;
 }
 
-/* Center Container */
 .main-box {
     background: rgba(0, 0, 0, 0.65);
-    padding: 40px;
+    padding: 30px;
     border-radius: 15px;
-    width: 60%;
-    margin: auto;
-    margin-top: 80px;
     text-align: center;
 }
 
-/* Text Color */
 h1, h2, h3, p, label {
     color: white !important;
 }
 
-/* Text Area */
 textarea {
-    background-color: rgba(255,255,255,0.9) !important;
+    background-color: white !important;
     color: black !important;
-    font-size: 16px !important;
 }
 
-/* Button */
 .stButton > button {
     width: 100%;
     background-color: #00b4d8;
     color: white;
-    font-size: 18px;
     border-radius: 10px;
-    padding: 10px;
 }
-
 </style>
 """
 
 st.markdown(page_bg, unsafe_allow_html=True)
 
-# Centered Heading
-st.markdown(
-    """
-    <div class="main-box">
-        <h1>💼 Job Recommendation System</h1>
-        <p>Enter your skills or resume summary to get a recommended job role.</p>
-    </div>
-    """,
-    unsafe_allow_html=True
+st.markdown("""
+<div class="main-box">
+<h1>💼 Job Recommendation System</h1>
+<p>Enter your skills or resume summary to get a recommended job role.</p>
+</div>
+""", unsafe_allow_html=True)
+
+skills = st.text_area(
+    "Enter Skills / Resume Summary",
+    height=180
 )
 
-# Center Column Layout
-col1, col2, col3 = st.columns([1, 2, 1])
+if st.button("Recommend Job"):
 
-with col2:
+    if skills.strip() == "":
+        st.warning("Please enter your skills.")
 
-    skills = st.text_area(
-        "Enter Skills / Resume Summary",
-        height=180
-    )
+    else:
 
-    if st.button("Recommend Job"):
+        text = skills.lower()
 
-        if skills.strip() == "":
-            st.warning("Please enter your skills.")
+        if any(word in text for word in
+               ["python", "machine learning", "deep learning", "tensorflow", "pandas"]):
+            job = "Data Scientist"
+
+        elif any(word in text for word in
+                 ["sql", "power bi", "tableau", "excel"]):
+            job = "Data Analyst"
+
+        elif any(word in text for word in
+                 ["java", "spring", "hibernate"]):
+            job = "Java Developer"
+
+        elif any(word in text for word in
+                 ["html", "css", "javascript", "react"]):
+            job = "Web Developer"
+
+        elif any(word in text for word in
+                 ["aws", "docker", "kubernetes", "devops"]):
+            job = "DevOps Engineer"
+
+        elif any(word in text for word in
+                 ["c++", "c", "data structures", "algorithms"]):
+            job = "Software Engineer"
+
         else:
+            job = "Software Developer"
 
-            skills = skills.lower()
-
-            if "python" in skills or "machine learning" in skills:
-                job = "Data Scientist"
-
-            elif "java" in skills:
-                job = "Java Developer"
-
-            elif "sql" in skills or "power bi" in skills:
-                job = "Data Analyst"
-
-            elif "html" in skills or "css" in skills:
-                job = "Web Developer"
-
-            elif "aws" in skills or "cloud" in skills:
-                job = "Cloud Engineer"
-
-            else:
-                job = "Software Engineer"
-
-            st.success(f"🎯 Recommended Job: {job}")
+        st.success(f"🎯 Recommended Job: {job}")
