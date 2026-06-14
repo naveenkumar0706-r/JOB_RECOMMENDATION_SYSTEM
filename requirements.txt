@@ -7,3 +7,4 @@ keras==2.15.0
 joblib==1.4.2
 openpyxl==3.1.5
 pillow
+nltk
